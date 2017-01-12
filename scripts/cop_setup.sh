@@ -24,27 +24,39 @@ function tolower() {
 function genRunconfig() {
    cat > $RUNCONFIG <<EOF
 {
- "tls_disable":true,
+ "tls_disable":$TLS_DISABLE,
  "authentication": true,
  "driver":"$DRIVER",
  "data_source":"$DATASRC",
  "ca_cert":"$TESTDATA/ec.pem",
  "ca_key":"$TESTDATA/ec-key.pem",
+ "tls":{
+   "tls_cert":"$TESTDATA/tls_server-cert.pem",
+   "tls_key":"$TESTDATA/tls_server-key.pem",
+   "mutual_tls_ca":"$TESTDATA/root.pem",
+   "db_client":{
+     "ca_certfiles":["$TESTDATA/root.pem"],
+     "client":{"keyfile":"$TESTDATA/tls_server-key.pem","certfile":"$TESTDATA/tls_server-cert.pem"}
+   }
+ },
+ "user_registry": {
+   "max_enrollments": 1
+ },
  "users": {
     "admin": {
       "pass": "adminpw",
       "type": "client",
       "group": "bank_a",
-      "attrs": [{"name":"hf.Registrar.Roles","value":"client,peer,validator,auditor"},
-                {"name":"hf.Registrar.DelegateRoles", "value": "client"},
+      "attrs": [{"name":"hf.Registrar.Roles","value":"client,user,peer,validator,auditor"},
+                {"name":"hf.Registrar.DelegateRoles", "value": "client,user,validator,auditor"},
                 {"name":"hf.Revoker", "value": "true"}]
     },
     "admin2": {
       "pass": "adminpw2",
       "type": "client",
       "group": "bank_a",
-      "attrs": [{"name":"hf.Registrar.Roles","value":"client,peer,validator,auditor"},
-                {"name":"hf.Registrar.DelegateRoles", "value": "client"},
+      "attrs": [{"name":"hf.Registrar.Roles","value":"client,user,peer,validator,auditor"},
+                {"name":"hf.Registrar.DelegateRoles", "value": "client,user,validator,auditor"},
                 {"name":"hf.Revoker", "value": "true"}]
     },
     "revoker": {
@@ -60,16 +72,21 @@ function genRunconfig() {
       "attrs": [{"name":"hf.Registrar.Roles","value":"client,peer,validator,auditor"},
                 {"name":"hf.Registrar.DelegateRoles", "value": "client"}]
     },
+    "expiryUser": {
+      "pass": "expirypw",
+      "type": "client",
+      "group": "bank_a"
+    },
     "testUser": {
       "pass": "user1",
       "type": "client",
-      "group": "bank_a",
+      "group": "bank_b",
       "attrs": []
     },
     "testUser2": {
       "pass": "user2",
       "type": "client",
-      "group": "bank_a",
+      "group": "bank_c",
       "attrs": []
     },
     "testUser3": {
@@ -93,6 +110,10 @@ function genRunconfig() {
        "ca_constraint": {"is_ca": true, "max_path_len":1},
        "ocsp_no_check": true,
        "not_before": "2016-12-30T00:00:00Z"
+    },
+    "expiry": {
+       "usages": ["cert sign"],
+       "expiry": "1s"
     }
  }
 }
@@ -392,7 +413,7 @@ function killAllCops() {
 }
 
 
-while getopts "\?hPRCBISKXLDd:t:l:n:i:c:k:x:" option; do
+while getopts "\?hPRCBISKXLDTd:t:l:n:i:c:k:x:" option; do
   case "$option" in
      d)   DRIVER="$OPTARG" ;;
      n)   COP_INSTANCES="$OPTARG" ;;
@@ -412,6 +433,7 @@ while getopts "\?hPRCBISKXLDd:t:l:n:i:c:k:x:" option; do
      X)   PROXY="true" ;;
      K)   KILL="true" ;;
      L)   LIST="true" ;;
+     T)   TLS_DISABLE="false" ;;
    \?|h)  usage
           exit 1
           ;;
@@ -423,6 +445,7 @@ test -z "$DATADIR" && DATADIR="$HOME/cop"
 test -z "$SRC_KEY" && SRC_KEY="$DATADIR/server-key.pem"
 test -z "$SRC_CERT" && SRC_CERT="$DATADIR/server-cert.pem"
 
+: ${TLS_DISABLE="true"}
 : ${DRIVER="sqlite3"}
 : ${COP_INSTANCES=1}
 : ${COP_DEBUG="false"}

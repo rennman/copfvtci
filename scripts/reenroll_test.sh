@@ -10,9 +10,9 @@ function enrollUser() {
    local USERNAME=$1
    mkdir -p $KEYSTORE/$USERNAME
    export COP_HOME=$KEYSTORE/admin
-   OUT=$($SCRIPTDIR/register.sh -u $USERNAME -t $USERTYPE -g $USERGRP)
+   OUT=$($SCRIPTDIR/register.sh -u $USERNAME -t $USERTYPE -g $USERGRP -x $COP_HOME)
    echo "$OUT"
-   PASSWD="$(echo $OUT | tail -n1 | awk '{print $NF}')"
+   PASSWD="$(echo "$OUT" | head -n1 | awk '{print $NF}')"
    export COP_HOME=$KEYSTORE/$USERNAME
    test -d $COP_HOME || mkdir -p $COP_HOME
    $SCRIPTDIR/enroll.sh -u $USERNAME -p $PASSWD -x $COP_HOME
@@ -42,19 +42,19 @@ mkdir -p $KEYSTORE/admin
 export COP_HOME=$KEYSTORE/admin
 test -d $COP_HOME || mkdir -p $COP_HOME
 
-for driver in sqlite3 postgres mysql; do
+#for driver in sqlite3 postgres mysql; do
+for driver in sqlite3 postgres ; do
    echo ""
    echo ""
    echo ""
    echo "------> BEGIN TESTING $driver <----------"
    $SCRIPTDIR/cop_setup.sh -R -x $KEYSTORE 
-   $SCRIPTDIR/cop_setup.sh -D -I -S -X -n4 -d $driver -x $KEYSTORE
+   $SCRIPTDIR/cop_setup.sh -I -S -X -n4 -d $driver -x $KEYSTORE
    if test $? -ne 0; then
       echo "Failed to setup server"
       RC=$((RC+1))
       continue
    fi
-
 
    COP_HOME=$KEYSTORE/admin
    $SCRIPTDIR/enroll.sh -u admin -p adminpw -x $COP_HOME
@@ -69,6 +69,8 @@ for driver in sqlite3 postgres mysql; do
       if test $? -ne 0; then 
          echo "Failed to enroll user${i}"
       else 
+         COP_HOME=$KEYSTORE/user${i}
+         test -d $COP_HOME || mkdir -p $COP_HOME
          $SCRIPTDIR/reenroll.sh -x $COP_HOME
          if test $? -ne 0; then 
             echo "Failed to reenroll user${i}"

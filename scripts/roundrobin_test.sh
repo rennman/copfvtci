@@ -5,9 +5,10 @@ SCRIPTDIR="$COP/scripts"
 RC=0
 HOST="localhost:10888"
 
-for driver in sqlite3 postgres mysql; do
+#for driver in sqlite3 postgres mysql; do
+for driver in sqlite3 postgres ; do
    $SCRIPTDIR/cop_setup.sh -R
-   $SCRIPTDIR/cop_setup.sh -D -I -S -X -n4 -t rsa -l 2048 -d $driver
+   $SCRIPTDIR/cop_setup.sh -I -S -X -n4 -t rsa -l 2048 -d $driver
    test $? -ne 0 && ErrorExit "Failed to setup server"
    $SCRIPTDIR/registerAndEnroll.sh -u 'user1 user2 user3 user4 user5 user6 user7 user8 user9'
    RC=$((RC+$?))

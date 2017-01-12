@@ -1,4 +1,4 @@
-#!/bin/bash
+# !/bin/bash -x
 COP="$GOPATH/src/github.com/hyperledger/fabric-cop"
 COPEXEC="$COP/bin/cop"
 TESTDATA="$COP/testdata"
@@ -7,11 +7,6 @@ CSR="$TESTDATA/csr.json"
 HOST="http://localhost:8888"
 RUNCONFIG="$TESTDATA/postgres.json"
 INITCONFIG="$TESTDATA/csr_ecdsa256.json"
-#INITCONFIG="$TESTDATA/csr_dsa.json"
-# RUNCONFIG="$TESTDATA/testconfig.json"
-COP_HOME="$HOME/cop"
-CLIENTCERT="$DATADIR/cert.pem"
-CLIENTKEY="$DATADIR/key.pem"
 RC=0
 
 : ${COP_DEBUG="false"}
@@ -28,7 +23,9 @@ done
 : ${KEYLEN="256"}
 : ${COP_DEBUG="false"}
 test -z "$COP_HOME" && COP_HOME=$HOME/cop
-
+CLIENTCERT="$COP_HOME/cert.pem"
+CLIENTKEY="$COP_HOME/key.pem"
+export COP_HOME
 $COPEXEC client reenroll $HOST <(echo "{
     \"hosts\": [
         \"admin@fab-client.raleigh.ibm.com\",

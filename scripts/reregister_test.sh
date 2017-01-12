@@ -10,9 +10,9 @@ function enrollUser() {
    local USERNAME=$1
    mkdir -p $KEYSTORE/$USERNAME
    export COP_HOME=$KEYSTORE/admin
-   OUT=$($SCRIPTDIR/register.sh -u $USERNAME -t $USERTYPE -g $USERGRP)
+   OUT=$($SCRIPTDIR/register.sh -u $USERNAME -t $USERTYPE -g $USERGRP -x $COP_HOME)
    echo "$OUT"
-   PASSWD="$(echo $OUT | tail -n1 | awk '{print $NF}')"
+   PASSWD="$(echo "$OUT" | head -n1 | awk '{print $NF}')"
    export COP_HOME=$KEYSTORE/$USERNAME
    $SCRIPTDIR/enroll.sh -u $USERNAME -p $PASSWD
 }
@@ -21,7 +21,7 @@ function enrollUser() {
    local USERNAME=$1
    mkdir -p $KEYSTORE/$USERNAME
    export COP_HOME=$KEYSTORE/admin
-   OUT=$($SCRIPTDIR/register.sh -u $USERNAME -t $USERTYPE -g $USERGRP)
+   OUT=$($SCRIPTDIR/register.sh -u $USERNAME -t $USERTYPE -g $USERGRP -x $COP_HOME)
    echo "$OUT"
    PASSWD="$(echo $OUT | tail -n1 | awk '{print $NF}')"
    export COP_HOME=$KEYSTORE/$USERNAME
@@ -51,9 +51,10 @@ export COP_DEBUG
 mkdir -p $KEYSTORE/admin
 export COP_HOME=$KEYSTORE/admin
 
-for driver in sqlite3 postgres mysql; do
+#for driver in sqlite3 postgres mysql; do
+for driver in sqlite3 postgres ; do
    $SCRIPTDIR/cop_setup.sh -R -x $KEYSTORE
-   $SCRIPTDIR/cop_setup.sh -D -I -S -X -n4 -t rsa -l 2048 -d $driver -x $KEYSTORE
+   $SCRIPTDIR/cop_setup.sh -I -S -X -n4 -t rsa -l 2048 -d $driver -x $KEYSTORE
    RC=$((RC+$?))
 
    $SCRIPTDIR/enroll.sh -u admin -p adminpw
@@ -64,7 +65,7 @@ for driver in sqlite3 postgres mysql; do
    fi
    
 
-   $SCRIPTDIR/register.sh -u ${USERNAME} -t $USERTYPE -g $USERGRP
+   $SCRIPTDIR/register.sh -u ${USERNAME} -t $USERTYPE -g $USERGRP -x $COP_HOME
    if test $? -ne 0; then
       echo "Failed to register $USERNAME"
       RC=$((RC+1))
@@ -72,7 +73,7 @@ for driver in sqlite3 postgres mysql; do
    fi
 
    for i in {2..8}; do 
-      $SCRIPTDIR/register.sh -u $USERNAME -t $USERTYPE -g $USERGRP
+      $SCRIPTDIR/register.sh -u $USERNAME -t $USERTYPE -g $USERGRP -x $COP_HOME
       if test $? -eq 0; then 
          echo "Duplicate registration of " $USERNAME
          RC=$((RC+1))
