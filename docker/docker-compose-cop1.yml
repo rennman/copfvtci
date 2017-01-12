@@ -1,0 +1,24 @@
+version: '2'
+services:
+   cop:
+      image: hyperledger/fabric-cop
+      build:
+        context: ./fabric-cop
+        dockerfile: Dockerfile
+      ports:
+        - "8888:8888"
+      #command: sh -c 'cop server start -config /config/$COP_CONFIG -address "0.0.0.0"'
+      #command: sh -c 'cop server start -config /etc/hyperledger/fabric-cop/$COP_CONFIG -address "0.0.0.0"'
+      entrypoint: 
+         - /usr/local/bin/cop
+         -  server 
+         -  start
+         - -config
+         - /etc/hyperledger/fabric-cop/cop.json
+         - -ca 
+         - /etc/hyperledger/fabric-cop/ec.pem 
+         - -ca-key 
+         - /etc/hyperledger/fabric-cop/ec-key.pem 
+         -  -address
+         -  "0.0.0.0"
+      container_name: cop1

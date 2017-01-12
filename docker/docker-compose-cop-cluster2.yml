@@ -1,0 +1,108 @@
+version: '2'
+services:
+   db:
+      image: postgres
+      environment:
+        - POSTGRES_PASSWORD=mysecretpassword
+        - POSTGRES_USER=cop
+        - POSTGRES_DB=cop
+      ports:
+        - "5430:5432"
+      container_name: db
+
+   cop0:
+      build:
+        context: ./fabric-cop
+        dockerfile: Dockerfile
+      ports:
+        - "8888:8888"
+      entrypoint: 
+         - /usr/local/bin/cop
+         -  server 
+         -  start
+         - -config
+         - /etc/hyperledger/fabric-cop/cop.json
+         - -ca 
+         - /etc/hyperledger/fabric-cop/ec.pem 
+         - -ca-key 
+         - /etc/hyperledger/fabric-cop/ec-key.pem 
+         -  -address
+         -  "0.0.0.0"
+      container_name: cop0
+
+   cop1:
+      build:
+        context: ./fabric-cop
+        dockerfile: Dockerfile
+      ports:
+        - "8887:8888"
+      entrypoint: 
+         - /usr/local/bin/cop
+         -  server 
+         -  start
+         - -config
+         - /etc/hyperledger/fabric-cop/cop.json
+         - -ca 
+         - /etc/hyperledger/fabric-cop/ec.pem 
+         - -ca-key 
+         - /etc/hyperledger/fabric-cop/ec-key.pem 
+         -  -address
+         -  "0.0.0.0"
+      container_name: cop1
+
+   cop2:
+      build:
+        context: ./fabric-cop
+        dockerfile: Dockerfile
+      ports:
+        - "8886:8888"
+      entrypoint: 
+         - /usr/local/bin/cop
+         -  server 
+         -  start
+         - -config
+         - /etc/hyperledger/fabric-cop/cop.json
+         - -ca 
+         - /etc/hyperledger/fabric-cop/ec.pem 
+         - -ca-key 
+         - /etc/hyperledger/fabric-cop/ec-key.pem 
+         -  -address
+         -  "0.0.0.0"
+      container_name: cop2
+
+   haproxy:
+      build: ./haproxy
+      ports:
+        - "8880:8888"
+      links:
+        - cop0:cop0
+        - cop1:cop1
+        - cop2:cop2
+      container_name: haproxy
+   
+   admin-client:
+      build:
+        context: ./fabric-cop
+        dockerfile: Dockerfile
+      links:
+        - haproxy:haproxy
+      container_name: admin-client
+      entrypoint: /etc/hyperledger/fabric-cop/wait-for-proxy.sh
+   
+   bob-client:
+      build:
+        context: ./fabric-cop
+        dockerfile: Dockerfile
+      links:
+        - haproxy:haproxy
+      container_name: bob-client
+      entrypoint: /etc/hyperledger/fabric-cop/wait-for-proxy.sh
+
+   sdk-client:
+      build:
+        context: ./fabric-cop
+        dockerfile: Dockerfile
+      links:
+        - haproxy:haproxy
+      container_name: sdk-client
+      entrypoint: /etc/hyperledger/fabric-cop/wait-for-proxy.sh

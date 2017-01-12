@@ -1,0 +1,7 @@
+FROM hyperledger/fabric-cop-runtime:x86_64-0.7.0-snapshot-d703f35
+ENV COP_HOME /etc/hyperledger/fabric-cop
+RUN mkdir -p $COP_HOME /var/hyperledger/fabric-cop
+COPY payload/cop /usr/local/bin
+ADD payload/sampleconfig.tar.bz2 $COP_HOME
+EXPOSE 8888
+CMD cop server start -address 0.0.0.0 -config $COP_HOME/cop.json

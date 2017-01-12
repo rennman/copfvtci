@@ -1,0 +1,32 @@
+global
+      log /dev/log      local0 debug
+      log /dev/log      local1 debug
+      daemon
+defaults
+      log     global
+      mode http
+      option  httplog
+      option  dontlognull
+      maxconn 1024
+      timeout connect 5000
+      timeout client 50000
+      timeout server 50000
+      option forwardfor
+
+listen stats *:10888
+      stats enable
+      stats uri /
+      stats enable
+
+frontend haproxy
+      bind *:8888
+      mode http
+      default_backend cops
+
+backend cops
+      mode http
+      http-request set-header X-Forwarded-Port %[dst_port]
+      server server1 cop0:8880
+      server server2 cop1:8881
+      server server3 cop2:8882
+      balance roundrobin

@@ -1,0 +1,33 @@
+#!/bin/bash
+COP=$GOPATH/src/github.com/hyperledger/fabric-cop
+SCRIPTDIR="$COP/scripts"
+export TESTCASE="cop-fvt"
+export RESULTLOG="/tmp/fvt-test.results"
+export STARTIME=$SECONDS
+export RC=0
+. $SCRIPTDIR/cop_utils
+> $RESULTLOG
+
+(
+echo "Running fvt tests ..."
+export PATH=$PATH:$GOPATH/bin
+tests="$(find $SCRIPTDIR -name "*test*sh")"
+for cmd in $tests; do 
+  echo ""
+  echo "*******************"
+  TESTCASE="${cmd##*/}"
+  echo "${cmd}"
+  echo "*******************"
+  ${cmd} 2>&1 
+  RC=$((RC+$?))
+  $SCRIPTDIR/cop_setup.sh -R
+  echo ""
+  echo ""
+  echo ""
+done
+echo "Finished running fvt tests"
+grep RC: $RESULTLOG
+TESTCASE="cop-fvt"
+CleanUp $RC
+) | tee -a $RESULTLOG 2>&1
+exit "$RC"
