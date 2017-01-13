@@ -1,16 +1,17 @@
 #!/bin/sh
-CLIENTAUTH=$1
+CLIENTCERT=$1
+CLIENTKEY=$2
 
-test -z $CLIENTAUTH && CLIENTAUTH="$HOME/.cop/client.json"
+: ${CLIENTCERT:="$HOME/.cop/cert.pem"}
+: ${CLIENTKEY:="$HOME/.cop/key.pem"}
 
-key=$(cat  $CLIENTAUTH |jq '.publicSigner.key'  |sed 's/"//g')
-cert=$(cat $CLIENTAUTH |jq '.publicSigner.cert' |sed 's/"//g')
-echo CERT:
-echo $cert |base64 -d| openssl x509 -text 2>&1 | sed 's/^/    /'
-type=$(echo $key  |base64 -d | head -n1 | awk '{print tolower($2)}')
-echo KEY:
-echo $key  |base64 -d| openssl $type -text 2>/dev/null| sed 's/^/    /'
-
+#key=$(cat  $CLIENTAUTH |jq '.publicSigner.key'  |sed 's/"//g')
+#cert=$(cat $CLIENTAUTH |jq '.publicSigner.cert' |sed 's/"//g')
+#echo CERT:
+#echo $cert |base64 -d| openssl x509 -text 2>&1 | sed 's/^/    /'
+#type=$(echo $key  |base64 -d | head -n1 | awk '{print tolower($2)}')
+#echo KEY:
+#echo $key  |base64 -d| openssl $type -text 2>/dev/null| sed 's/^/    /'
 #case $1 in
 #   d) base64 -d ;;
 #   *) awk -v FS='' '
@@ -19,3 +20,9 @@ echo $key  |base64 -d| openssl $type -text 2>/dev/null| sed 's/^/    /'
 #         END   { if ((i%64)!=0) print "" ; printf "-----END CERTIFICATE-----\n" }'
 #      ;;
 #esac
+echo CERT:
+openssl x509 -in $CLIENTCERT -text 2>&1 | sed 's/^/    /'
+type=$(cat $CLIENTKEY | head -n1 | awk '{print tolower($2)}')
+echo KEY:
+openssl $type -in $CLIENTKEY -text 2>/dev/null| sed 's/^/    /'
+

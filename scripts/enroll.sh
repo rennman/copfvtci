@@ -58,11 +58,5 @@ $COPEXEC client enroll $USERNAME $USERPSWD $HOST <(echo "{
     ]
 }")
 RC=$?
-if $($COP_DEBUG); then 
-   echo CERT:
-   openssl x509 -in $CLIENTCERT -text 2>&1 | sed 's/^/    /'
-   type=$(cat $CLIENTKEY | head -n1 | awk '{print tolower($2)}')
-   echo KEY:
-   openssl $type -in $CLIENTKEY -text 2>/dev/null| sed 's/^/    /'
-fi
+$($COP_DEBUG) && printAuth $CLIENTCERT $CLIENTKEY 
 exit $RC

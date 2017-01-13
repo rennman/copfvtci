@@ -53,14 +53,5 @@ $COPEXEC client reenroll $HOST <(echo "{
     ]
 }")
 RC=$?
-
-if $($COP_DEBUG); then
-   if test "$RC" -eq 0; then
-      echo CERT:
-      openssl x509 -in $CLIENTCERT -text 2>&1 | sed 's/^/    /'
-      ktype=$(cat $CLIENTKEY | head -n1 | awk '{print tolower($2)}')
-      echo KEY:
-      openssl $ktype -in $CLIENTKEY -text 2>/dev/null| sed 's/^/    /'
-   fi
-fi
+$($COP_DEBUG) && printAuth $CLIENTCERT $CLIENTKEY
 exit $RC

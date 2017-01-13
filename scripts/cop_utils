@@ -73,3 +73,17 @@ function verifyServerTraffic() {
 
    return $rc
 }
+
+function printAuth() {
+   CLIENTCERT=$1
+   CLENTKEY=$2
+   
+   : ${CLIENTCERT:="$HOME/cop/cert.pem"}
+   : ${CLIENTKEY:="$HOME/cop/key.pem"}
+   
+   echo CERT:
+   openssl x509 -in $CLIENTCERT -text 2>&1 | sed 's/^/    /'
+   type=$(cat $CLIENTKEY | head -n1 | awk '{print tolower($2)}')
+   echo KEY:
+   openssl $type -in $CLENTKEY -text 2>/dev/null| sed 's/^/    /'
+}
