@@ -362,6 +362,7 @@ function signreq {
       config_opts $config
 
       $CA -config $config \
+          -startdate "$STARTDATE" -enddate "$STARTDATE" \
           -policy policy_anything \
           -md $digest \
           -days $expiration \
@@ -573,7 +574,8 @@ shift $(($OPTIND-1))
 : ${digest:="sha1"}
 : ${crlexpiration:="7300"}
 : ${expiration:="7300"}
-: ${ENDDATE:=$(date +"%g%m%d%H%M%S%Z")}
+: ${ENDDATE:=$(date +"%g%m%d%H%M%SZ")}
+: ${STARTDATE:=$(date +"%g%m%d%H%M%SZ")}
 : ${keyfile:="newkey.pem"}
 : ${extensions:="N"}
 : ${ktype:="rsa"}

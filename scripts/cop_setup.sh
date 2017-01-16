@@ -106,7 +106,7 @@ function genRunconfig() {
     "default": {
        "usages": ["cert sign"],
        "expiry": "8000h",
-       "crl_url": "http://swlinux/certs/PKI/CAs/TSCP1100CA16C/crl/crl.der",
+       "crl_url": "http://104.196.136.32/TestCRL.crl",
        "ca_constraint": {"is_ca": true, "max_path_len":1},
        "ocsp_no_check": true,
        "not_before": "2016-12-30T00:00:00Z"
