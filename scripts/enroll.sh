@@ -3,15 +3,18 @@ COP="$GOPATH/src/github.com/hyperledger/fabric-cop"
 COPEXEC="$COP/bin/cop"
 TESTDATA="$COP/testdata"
 SCRIPTDIR="$COP/scripts"
+. $SCRIPTDIR/cop_utils
 HOST="http://localhost:8888"
 RC=0
 
 while getopts "du:p:t:l:x:" option; do
   case "$option" in
-     x)   COP_HOME="$OPTARG" ;;
      d)   COP_DEBUG="true" ;;
+     x)   COP_HOME="$OPTARG" ;;
      u)   USERNAME="$OPTARG" ;;
-     p)   USERPSWD="$OPTARG" ;;
+     p)   USERPSWD="$OPTARG"
+          test -z "$USERPSWD" && AUTH=false
+     ;;
      t)   KEYTYPE="$OPTARG" ;;
      l)   KEYLEN="$OPTARG" ;;
   esac
@@ -22,14 +25,16 @@ test -z "$CLIENTCERT" && CLIENTCERT="$COP_HOME/cert.pem"
 test -z "$CLIENTKEY" && CLIENTKEY="$COP_HOME/key.pem"
 test -f "$COP_HOME" || mkdir -p $COP_HOME
 : ${COP_DEBUG="false"}
+: ${AUTH="true"}
 : ${USERNAME="admin"}
 : ${USERPSWD="adminpw"}
+$($AUTH) || unset USERPSWD
 : ${KEYTYPE="ecdsa"}
 : ${KEYLEN="256"}
 
 test "$KEYTYPE" = "ecdsa" && sslcmd="ec"
 
-$COPEXEC client enroll $USERNAME $USERPSWD $HOST <(echo "{
+$COPEXEC client enroll "$USERNAME" "$USERPSWD" "$HOST" <(echo "{
     \"hosts\": [
         \"admin@fab-client.raleigh.ibm.com\",
         \"fab-client.raleigh.ibm.com\",

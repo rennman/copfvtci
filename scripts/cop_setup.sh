@@ -25,7 +25,7 @@ function genRunconfig() {
    cat > $RUNCONFIG <<EOF
 {
  "tls_disable":$TLS_DISABLE,
- "authentication": true,
+ "authentication": $AUTH,
  "driver":"$DRIVER",
  "data_source":"$DATASRC",
  "ca_cert":"$TESTDATA/ec.pem",
@@ -40,7 +40,7 @@ function genRunconfig() {
    }
  },
  "user_registry": {
-   "max_enrollments": 1
+   "max_enrollments": $MAXENROLL
  },
  "users": {
     "admin": {
@@ -413,7 +413,7 @@ function killAllCops() {
 }
 
 
-while getopts "\?hPRCBISKXLDTd:t:l:n:i:c:k:x:" option; do
+while getopts "\?hPRCBISKXLDTAd:t:l:n:i:c:k:x:g:m:" option; do
   case "$option" in
      d)   DRIVER="$OPTARG" ;;
      n)   COP_INSTANCES="$OPTARG" ;;
@@ -423,7 +423,10 @@ while getopts "\?hPRCBISKXLDTd:t:l:n:i:c:k:x:" option; do
      c)   SRC_CERT="$OPTARG";;
      k)   SRC_KEY="$OPTARG" ;;
      x)   DATADIR="$OPTARG" ;;
+     m)   MAXENROLL="$OPTARG" ;;
+     g)   SERVERCONFIG="$OPTARG" ;;
      D)   export COP_DEBUG='true' ;;
+     A)   AUTH="false" ;;
      P)   PREP="true"  ;;
      R)   RESET="true"  ;;
      C)   CLONE="true" ;;
@@ -446,6 +449,8 @@ test -z "$SRC_KEY" && SRC_KEY="$DATADIR/server-key.pem"
 test -z "$SRC_CERT" && SRC_CERT="$DATADIR/server-cert.pem"
 
 : ${TLS_DISABLE="true"}
+: ${MAXENROLL="1"}
+: ${AUTH="true"}
 : ${DRIVER="sqlite3"}
 : ${COP_INSTANCES=1}
 : ${COP_DEBUG="false"}
@@ -479,7 +484,7 @@ $($KILL)  && killAllCops
 $($PROXY) && startHaproxy $COP_INSTANCES
 
 if $($START); then
-   genRunconfig
+   test -z "$SERVERCONFIG" && genRunconfig || cp "$SERVERCONFIG" "$RUNCONFIG"
    inst=0
    while test $((inst++)) -lt $COP_INSTANCES; do
       startCop $inst

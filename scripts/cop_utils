@@ -12,9 +12,9 @@ CleanUp() {
    ###############################################################################
    # Summary
    ###############################################################################
-   echo "" | tee -a "$RESULTLOG"
-   echo "#########################################################################" |tee -a "$RESULTLOG"
-   printf "RC: $RC, $TESTCASE " |tee -a "$RESULTLOG"
+   echo "" 
+   echo "#########################################################################" 
+   printf "RC: $RC, $TESTCASE " 
 
    if test "$RC" -eq 0; then
       RESULT="PASSED"
@@ -24,11 +24,11 @@ CleanUp() {
 
    printf "%s\n" $RESULT
    RUNTIME_S="$((SECONDS-STARTIME))"
-   echo "$((RUNTIME_S/60)) minutes, $((RUNTIME_S%60)) seconds runtime"|tee -a "$RESULTLOG"
-   printf "$(TimeStamp) $TESTCASE ENDED\n"|tee -a "$RESULTLOG"
-   echo "#########################################################################"|tee -a "$RESULTLOG"
+   echo "$((RUNTIME_S/60)) minutes, $((RUNTIME_S%60)) seconds runtime"
+   printf "$(TimeStamp) $TESTCASE ENDED\n"
+   echo "#########################################################################"
 
-   TimeStamp | tee -a $RESULTLOG
+   TimeStamp 
    printf "%s test ended.\n" $TESTCASE
 }
 
