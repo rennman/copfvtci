@@ -28,8 +28,8 @@ function genRunconfig() {
  "authentication": $AUTH,
  "driver":"$DRIVER",
  "data_source":"$DATASRC",
- "ca_cert":"$TESTDATA/ec.pem",
- "ca_key":"$TESTDATA/ec-key.pem",
+ "ca_cert":"$DST_CERT",
+ "ca_key":"$DST_KEY",
  "tls":{
    "tls_cert":"$TESTDATA/tls_server-cert.pem",
    "tls_key":"$TESTDATA/tls_server-key.pem",
@@ -182,14 +182,14 @@ function runPSQL() {
    opts="$2"
    wrk_dir="$(pwd)"
    cd /tmp
-   sudo -u postgres psql "$opts" -c "$cmd"
+   postgres psql "$opts" -c "$cmd"
    cd $wrk_dir
 }
 
 function updateBase {
-   sudo apt-get update
-   sudo apt-get -y upgrade
-   sudo apt-get -y autoremove
+   apt-get update
+   apt-get -y upgrade
+   apt-get -y autoremove
    return $?
 }
 
@@ -197,9 +197,9 @@ function installGolang {
    local rc=0
    curl -G -L https://storage.googleapis.com/golang/go${GO_VER}.linux-${ARCH}.tar.gz \
            -o /tmp/go${GO_VER}.linux-${ARCH}.tar.gz
-   sudo tar -C /usr/local -xzf /tmp/go${GO_VER}.linux-${ARCH}.tar.gz
+   tar -C /usr/local -xzf /tmp/go${GO_VER}.linux-${ARCH}.tar.gz
    let rc+=$?
-   sudo apt-get install -y golang-golang-x-tools
+   apt-get install -y golang-golang-x-tools
    let rc+=$?
    return $rc
 }
@@ -208,19 +208,19 @@ function installDocker {
    local rc=0
    local codename=$(lsb_release -c | awk '{print $2}')
    local kernel=$(uname -r)
-   sudo apt-get install apt-transport-https ca-certificates \
+   apt-get install apt-transport-https ca-certificates \
                 linux-image-extra-$kernel linux-image-extra-virtual
-   sudo echo "deb https://apt.dockerproject.org/repo ubuntu-${codename} main" >/tmp/docker.list
-   sudo cp /tmp/docker.list /etc/apt/sources.list.d/docker.list
-   sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 \
+   echo "deb https://apt.dockerproject.org/repo ubuntu-${codename} main" >/tmp/docker.list
+   cp /tmp/docker.list /etc/apt/sources.list.d/docker.list
+   apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 \
                     --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
-   sudo apt-get update
-   sudo apt-get -y upgrade
-   sudo apt-get -y install docker-engine || let rc+=1
-   sudo curl -L https://github.com/$(curl -s -L https://github.com/docker/compose/releases | awk -v arch=$(uname -s)-$(uname -p) -F'"' '$0~arch {print $2;exit}') -o /usr/local/bin/docker-compose
-   sudo chmod +x /usr/local/bin/docker-compose
-   sudo groupadd docker
-   sudo usermod -aG docker $(who are you | awk '{print $1}')
+   apt-get update
+   apt-get -y upgrade
+   apt-get -y install docker-engine || let rc+=1
+   curl -L https://github.com/$(curl -s -L https://github.com/docker/compose/releases | awk -v arch=$(uname -s)-$(uname -p) -F'"' '$0~arch {print $2;exit}') -o /usr/local/bin/docker-compose
+   chmod +x /usr/local/bin/docker-compose
+   groupadd docker
+   usermod -aG docker $(who are you | awk '{print $1}')
    return $rc
 }
 
@@ -238,28 +238,28 @@ function updateSudoers() {
 
 function installPrereq() {
    updateBase || ErrorExit "updateBase failed"
-   updateSudoers || ErrorExit "updateSudoers failed"
+   #updateSudoers || ErrorExit "updateSudoers failed"
    installGolang || ErrorExit "installGolang failed"
    installDocker || ErrorExit "installDocker failed"
    go get github.com/go-sql-driver/mysql || ErrorExit "install go-sql-driver failed"
    go get github.com/lib/pq || ErrorExit "install pq failed"
-   sudo apt-get -y install haproxy postgresql postgresql-contrib \
+   apt-get -y install haproxy postgresql postgresql-contrib \
                    vim-haproxy haproxy-doc postgresql-doc locales-all \
                    libdbd-pg-perl isag jq git || ErrorExit "haproxy installed failed"
    export DEBIAN_FRONTEND=noninteractive
-   sudo apt-get -y purge mysql-server
-   sudo apt-get -y purge mysql-server-core
-   sudo apt-get -y purge mysql-common
-   sudo apt-get -y install debconf-utils zsh htop
-   sudo rm -rf /var/log/mysql
-   sudo rm -rf /var/log/mysql.*
-   sudo rm -rf /var/lib/mysql
-   sudo rm -rf /etc/mysql
-   sudo echo "mysql-server mysql-server/root_password password mysql" | sudo debconf-set-selections
-   sudo echo "mysql-server mysql-server/root_password_again password mysql" | sudo debconf-set-selections
-   sudo apt-get install -y mysql-client mysql-common \
+   apt-get -y purge mysql-server
+   apt-get -y purge mysql-server-core
+   apt-get -y purge mysql-common
+   apt-get -y install debconf-utils zsh htop
+   rm -rf /var/log/mysql
+   rm -rf /var/log/mysql.*
+   rm -rf /var/lib/mysql
+   rm -rf /etc/mysql
+   echo "mysql-server mysql-server/root_password password mysql" | debconf-set-selections
+   echo "mysql-server mysql-server/root_password_again password mysql" | debconf-set-selections
+   apt-get install -y mysql-client mysql-common \
                            mysql-server --fix-missing --fix-broken || ErrorExit "install mysql failed"
-   sudo apt -y autoremove
+   apt -y autoremove
    runPSQL "ALTER USER postgres WITH PASSWORD 'postgres';"
 }
 
@@ -279,8 +279,8 @@ function resetCop(){
    rm -rf $DATADIR
    rm $TESTDATA/cop.db
    cd /tmp
-   sudo -u postgres dropdb cop
-   sudo mysql --host=localhost --user=root --password=mysql -e 'DROP DATABASE IF EXISTS cop;'
+   postgres dropdb cop
+   mysql --host=localhost --user=root --password=mysql -e 'DROP DATABASE IF EXISTS cop;'
 }
 
 function listCop(){
@@ -306,6 +306,7 @@ function listCop(){
 }
 
 function initCop() {
+   set -x
    test -f $COPEXEC || ErrorExit "cop executable not found (use -B to build)"
    cd $COP/bin
  
@@ -313,6 +314,7 @@ function initCop() {
    export COP_HOME=$HOME/cop
    $COPEXEC server init $INITCONFIG
 
+   rm $DST_KEY $DST_CERT
    cp $SRC_KEY $DST_KEY
    cp $SRC_CERT $DST_CERT
    echo "COP server initialized"
@@ -337,7 +339,7 @@ function initCop() {
 function startHaproxy() {
    local inst=$1
    local i=0
-   sudo /etc/init.d/haproxy stop
+   /etc/init.d/haproxy stop
    #sudo sed -i 's/ *# *$UDPServerRun \+514/$UDPServerRun 514/' /etc/rsyslog.conf
    #sudo sed -i 's/ *# *$ModLoad \+imudp/$ModLoad imudp/' /etc/rsyslog.conf
    haproxy -f  <(echo "global
@@ -407,9 +409,9 @@ function startCop() {
 
 function killAllCops() {
    local coppids=$(ps ax | awk '$5~/cop/ {print $1}')
-   local proxypids=$(sudo lsof -n -i tcp | awk '$1=="haproxy" && !($2 in a) {a[$2]=$2;print a[$2]}')
-   test -n "$coppids" && sudo kill $coppids
-   test -n "$proxypids" && sudo kill $proxypids
+   local proxypids=$(lsof -n -i tcp | awk '$1=="haproxy" && !($2 in a) {a[$2]=$2;print a[$2]}')
+   test -n "$coppids" && kill $coppids
+   test -n "$proxypids" && kill $proxypids
 }
 
 
@@ -479,7 +481,7 @@ $($PREP)  && installPrereq
 $($RESET) && resetCop
 $($CLONE) && cloneCop
 $($BUILD) && buildCop
-$($INIT)  && initCop
+$($INIT) && initCop
 $($KILL)  && killAllCops
 $($PROXY) && startHaproxy $COP_INSTANCES
 
