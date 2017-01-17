@@ -1,11 +1,20 @@
-#!/bin/bash
+#!/bin/bash 
 COP="$GOPATH/src/github.com/hyperledger/fabric-cop"
 SCRIPTDIR="$COP/scripts" 
 TESTDATA="$COP/testdata"
 . $SCRIPTDIR/cop_utils
 RC=0
 HOST="localhost:10888"
+HTTP_PORT="3755"
 
+
+cd $TESTDATA
+python -m SimpleHTTPServer $HTTP_PORT &
+HTTP_PID=$!
+pollServer python localhost "$HTTP_PORT" || ErrorExit "Failed to start HTTP server"
+echo $HTTP_PID
+trap "kill $HTTP_PID; CleanUp" INT 
+#
 # group is required if the type is client or peer.
 $SCRIPTDIR/cop_setup.sh -R
 $SCRIPTDIR/cop_setup.sh -I -S -X 
@@ -33,5 +42,7 @@ RC=$((RC+$?))
 # however, one is expected to al least sumbit a group with request
 $SCRIPTDIR/register.sh -u user9 -t auditor -g ''
 test "$?" -eq 0 && RC=$((RC+1))
+kill $HTTP_PID
+wait $HTTP_PID
 CleanUp $RC
 exit $RC

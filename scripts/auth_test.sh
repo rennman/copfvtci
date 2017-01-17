@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash 
 COP="$GOPATH/src/github.com/hyperledger/fabric-cop"
 SCRIPTDIR="$COP/scripts" 
 . $SCRIPTDIR/cop_utils
@@ -6,7 +6,7 @@ RC=0
 HOST="localhost:10888"
 
 #for driver in sqlite3 postgres mysql; do
-for driver in sqlite3 postgres ; do
+for driver in sqlite3 ; do
 
    # - auth enabled
    $SCRIPTDIR/cop_setup.sh -R 

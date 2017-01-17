@@ -12,8 +12,8 @@ export RC=0
 TimeStamp
 echo "Running fvt tests ..."
 export PATH=$PATH:$GOPATH/bin
-#tests="$(find $SCRIPTDIR -name "*test*sh")"
-tests="$SCRIPTDIR/enrollments_test.sh $SCRIPTDIR/auth_test.sh $SCRIPTDIR/group_test.sh"
+tests="$(find $SCRIPTDIR -name "*test*sh")"
+#tests="$SCRIPTDIR/reenroll_test.sh"
 for cmd in $tests; do 
   echo ""
   echo "*******************"

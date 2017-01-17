@@ -106,7 +106,7 @@ function genRunconfig() {
     "default": {
        "usages": ["cert sign"],
        "expiry": "8000h",
-       "crl_url": "http://104.196.136.32/TestCRL.crl",
+       "crl_url": "http://localhost:$HTTP_PORT/TestCRL.crl",
        "ca_constraint": {"is_ca": true, "max_path_len":1},
        "ocsp_no_check": true,
        "not_before": "2016-12-30T00:00:00Z"
@@ -118,6 +118,7 @@ function genRunconfig() {
  }
 }
 EOF
+
 }
 
 function genInitConfig() {
@@ -306,7 +307,6 @@ function listCop(){
 }
 
 function initCop() {
-   set -x
    test -f $COPEXEC || ErrorExit "cop executable not found (use -B to build)"
    cd $COP/bin
  
@@ -414,10 +414,10 @@ function killAllCops() {
    test -n "$proxypids" && kill $proxypids
 }
 
-
-while getopts "\?hPRCBISKXLDTAd:t:l:n:i:c:k:x:g:m:" option; do
+while getopts "\?hPRCBISKXLDTAd:t:l:n:i:c:k:x:g:m:p:" option; do
   case "$option" in
      d)   DRIVER="$OPTARG" ;;
+     p)   HTTP_PORT="$OPTARG" ;;
      n)   COP_INSTANCES="$OPTARG" ;;
      i)   GITID="$OPTARG" ;;
      t)   KEYTYPE=$(tolower $OPTARG);;
@@ -450,6 +450,7 @@ test -z "$DATADIR" && DATADIR="$HOME/cop"
 test -z "$SRC_KEY" && SRC_KEY="$DATADIR/server-key.pem"
 test -z "$SRC_CERT" && SRC_CERT="$DATADIR/server-cert.pem"
 
+: ${HTTP_PORT="3755"}
 : ${TLS_DISABLE="true"}
 : ${MAXENROLL="1"}
 : ${AUTH="true"}
@@ -465,6 +466,7 @@ test -z "$SRC_CERT" && SRC_CERT="$DATADIR/server-cert.pem"
 : ${INIT="false"}
 : ${START="false"}
 : ${PROXY="false"}
+: ${HTTP="true"}
 : ${KILL="false"}
 : ${KEYTYPE="ecdsa"}
 : ${KEYLEN="256"}

@@ -1,7 +1,10 @@
 #!/bin/bash
 COP="$GOPATH/src/github.com/hyperledger/fabric-cop"
 SCRIPTDIR="$COP/scripts"
+TESTDATA="$COP/testdata"
 KEYSTORE="/tmp/keyStore"
+HOST="localhost:10888"
+HTTP_PORT="3755"
 RC=0
 
 . $SCRIPTDIR/cop_utils
@@ -47,14 +50,22 @@ done
 : ${KEYLEN="256"}
 : ${HOST="localhost:10888"}
 
+
+cd $TESTDATA
+python -m SimpleHTTPServer $HTTP_PORT &
+HTTP_PID=$!
+pollServer python localhost "$HTTP_PORT" || ErrorExit "Failed to start HTTP server"
+echo $HTTP_PID
+trap "kill $HTTP_PID; CleanUp" INT
+
 export COP_DEBUG
 mkdir -p $KEYSTORE/admin
 export COP_HOME=$KEYSTORE/admin
 
 #for driver in sqlite3 postgres mysql; do
-for driver in sqlite3 postgres ; do
+for driver in sqlite3 ; do
    $SCRIPTDIR/cop_setup.sh -R -x $KEYSTORE
-   $SCRIPTDIR/cop_setup.sh -I -S -X -n4 -t rsa -l 2048 -d $driver -x $KEYSTORE
+   $SCRIPTDIR/cop_setup.sh -I -S -X -n4 -t rsa -l 2048 -d $driver 
    RC=$((RC+$?))
 
    $SCRIPTDIR/enroll.sh -u admin -p adminpw
@@ -88,5 +99,7 @@ for driver in sqlite3 postgres ; do
 
    $SCRIPTDIR/cop_setup.sh -R -x $KEYSTORE
 done
+kill $HTTP_PID
+wait $HTTP_PID
 CleanUp "$RC"
 exit $RC

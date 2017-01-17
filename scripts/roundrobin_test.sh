@@ -1,12 +1,21 @@
 #!/bin/bash
 COP="$GOPATH/src/github.com/hyperledger/fabric-cop"
 SCRIPTDIR="$COP/scripts" 
+TESTDATA="$COP/testdata"
 . $SCRIPTDIR/cop_utils
 RC=0
 HOST="localhost:10888"
+HTTP_PORT="3755"
+
+cd $TESTDATA
+python -m SimpleHTTPServer $HTTP_PORT &
+HTTP_PID=$!
+pollServer python localhost "$HTTP_PORT" || ErrorExit "Failed to start HTTP server"
+echo $HTTP_PID
+trap "kill $HTTP_PID; CleanUp" INT
 
 #for driver in sqlite3 postgres mysql; do
-for driver in sqlite3 postgres ; do
+for driver in sqlite3 ; do
    $SCRIPTDIR/cop_setup.sh -R
    $SCRIPTDIR/cop_setup.sh -I -S -X -n4 -t rsa -l 2048 -d $driver
    test $? -ne 0 && ErrorExit "Failed to setup server"
@@ -20,5 +29,7 @@ for driver in sqlite3 postgres ; do
    done
    $SCRIPTDIR/cop_setup.sh -R
 done
+kill $HTTP_PID
+wait $HTTP_PID
 CleanUp $RC
 exit $RC
