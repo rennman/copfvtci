@@ -4,7 +4,7 @@ SCRIPTDIR="$COP/scripts"
 . $SCRIPTDIR/cop_utils
 RC=0
 HOST="localhost:10888"
-exit 1
+
 #for driver in sqlite3 postgres mysql; do
 for driver in sqlite3 ; do
 
