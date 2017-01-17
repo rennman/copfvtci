@@ -134,3 +134,12 @@ function printAuth() {
    echo KEY:
    openssl $type -in $CLENTKEY -text 2>/dev/null| sed 's/^/    /'
 }
+
+function startHttp() {
+   local port="$1"
+   local rootdir="$2"
+   cd $rootdir
+   python -m SimpleHTTPServer $port &
+   HTTP_PID=$!
+   pollServer python localhost "$HTTP_PORT" && return $HTTP_PID || return -1 
+}

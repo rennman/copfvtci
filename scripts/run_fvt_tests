@@ -13,7 +13,7 @@ TimeStamp
 echo "Running fvt tests ..."
 export PATH=$PATH:$GOPATH/bin
 tests="$(find $SCRIPTDIR -name "*test*sh")"
-#tests="$SCRIPTDIR/reenroll_test.sh"
+#tests="$SCRIPTDIR/auth_test.sh"
 for cmd in $tests; do 
   echo ""
   echo "*******************"
@@ -29,7 +29,8 @@ for cmd in $tests; do
 done
 echo "Finished running fvt tests"
 grep RC: $RESULTLOG
-TESTCASE="cop-fvt"
-CleanUp $RC
+echo $RC >> $RESULTLOG
 ) | tee -a $RESULTLOG 2>&1
+RC=$(tail -n1 $RESULTLOG)
+CleanUp "$RC"
 exit "$RC"
