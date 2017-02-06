@@ -135,7 +135,7 @@ container-tests: ldap-tests
 ldap-tests:
 	@scripts/run_ldap_tests
 
-fvt-tests:
+fvt-tests: fabric-ca
 	@scripts/run_fvt_tests
 
 %-docker-clean:
